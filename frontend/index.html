@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GovFlow AI — Public Grievance Intelligence</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #0f172a;
+            color: white;
+            padding: 22px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .brand h1 {
+            font-size: 21px;
+        }
+
+        .brand p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 3px;
+        }
+
+        .status {
+            font-size: 13px;
+            color: #86efac;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 36px 24px 60px;
+        }
+
+        .hero {
+            margin-bottom: 28px;
+        }
+
+        .hero h2 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .hero p {
+            color: #64748b;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+            margin-bottom: 22px;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 18px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 145px;
+            resize: vertical;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 18px;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 13px 22px;
+            background: #2563eb;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: wait;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 16px;
+            color: #2563eb;
+            font-size: 13px;
+        }
+
+        .error {
+            display: none;
+            margin-top: 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 13px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        #results {
+            display: none;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .metric {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 7px;
+        }
+
+        .metric-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .severity {
+            display: inline-flex;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .confidence{
+            margin-top: 8px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .brief-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+            margin-top: 22px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .location {
+            padding: 13px;
+            background: #f8fafc;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .action {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .approval {
+            margin-top: 22px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 35px;
+        }
+
+        @media (max-width: 800px) {
+            .header {
+                padding: 18px 20px;
+            }
+
+            .container {
+                padding: 28px 16px;
+            }
+
+            .hero h2 {
+                font-size: 26px;
+            }
+
+            .input-row,
+            .brief-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .status {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="brand">
+        <div class="logo">G</div>
+        <div>
+            <h1>GovFlow AI</h1>
+            <p>Public Grievance Intelligence Engine</p>
+        </div>
+    </div>
+
+    <div class="status">
+        <span class="status-dot"></span>
+        AI Engine Ready
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <h2>Turn complaints into actionable cases.</h2>
+        <p>
+            GovFlow AI validates, classifies, prioritizes, and routes
+            public complaints to the appropriate government department.
+        </p>
+    </section>
+
+    <section class="card">
+
+        <div class="card-title">Citizen Complaint</div>
+
+        <div class="card-subtitle">
+            Submit a complaint for AI-assisted triage.
+        </div>
+
+        <textarea id="complaintText"
+            placeholder="Example: Ada lubang besar dan berbahaya di Jl. Sudirman yang sudah menyebabkan kecelakaan..."></textarea>
+
+        <div class="input-row">
+            <input id="location"
+                placeholder="Location (optional)"
+                value="Jakarta Pusat">
+
+            <input id="category"
+                placeholder="Category (optional)"
+                value="">
+        </div>
+
+        <div class="button-row">
+            <button id="analyzeBtn" onclick="analyzeComplaint()">
+                Analyze Complaint
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            Processing complaint through GovFlow AI...
+        </div>
+
+        <div class="error" id="error"></div>
+
+    </section>
+
+
+    <section class="card" id="results">
+
+        <div class="card-title">AI Triage Result</div>
+
+        <div class="card-subtitle">
+            Recommendation generated from the GovFlow triage pipeline.
+        </div>
+
+        <div class="result-grid">
+
+            <div class="metric">
+                <div class="metric-label">Category</div>
+                <div class="metric-value" id="resultCategory">-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Department</div>
+                <div class="metric-value" id="resultDepartment">-</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Severity</div>
+                <div class="metric-value">
+                    <span class="severity" id="resultSeverity">-</span>
+                    <div class="confidence" id="resultConfidence">Confidence: -</div>
+                </div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">SLA</div>
+                <div class="metric-value" id="resultSla">-</div>
+            </div>
+
+        </div>
+
+
+        <div class="brief-grid">
+
+            <div>
+                <div class="section-title">Location</div>
+                <div class="location" id="resultLocation">
+                    -
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Key Facts</div>
+                <ul id="keyFacts"></ul>
+            </div>
+
+        </div>
+
+
+        <div style="margin-top: 22px;">
+
+            <div class="section-title">
+                Recommended Action
+            </div>
+
+            <div class="action" id="recommendedAction">
+                -
+            </div>
+
+        </div>
+
+
+        <div class="approval">
+            ⚠ Human approval required — GovFlow AI provides recommendations only.
+        </div>
+
+    </section>
+
+    <div class="footer">
+        GovFlow AI · AI recommends. Human decides.
+    </div>
+
+</main>
+
+
+<script>
+
+const API_BASE = "http://127.0.0.1:8000";
+
+
+async function analyzeComplaint() {
+
+    const text = document.getElementById("complaintText").value.trim();
+    const location = document.getElementById("location").value.trim();
+    const category = document.getElementById("category").value.trim();
+
+    const button = document.getElementById("analyzeBtn");
+    const loading = document.getElementById("loading");
+    const errorBox = document.getElementById("error");
+    const results = document.getElementById("results");
+
+    errorBox.style.display = "none";
+    results.style.display = "none";
+
+    if (!text) {
+        errorBox.textContent = "Please enter a complaint first.";
+        errorBox.style.display = "block";
+        return;
+    }
+
+    button.disabled = true;
+    loading.style.display = "block";
+
+    try {
+
+        // --------------------------------------------------
+        // 1. Submit complaint
+        // --------------------------------------------------
+
+        const complaintResponse = await fetch(
+            `${API_BASE}/complaints`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    text: text,
+                    location: location || null,
+                    category: category || null,
+                    evidence_present: false
+                })
+            }
+        );
+
+        if (!complaintResponse.ok) {
+            throw new Error(
+                `Complaint submission failed (${complaintResponse.status})`
+            );
+        }
+
+        const complaint = await complaintResponse.json();
+
+
+        // --------------------------------------------------
+        // 2. Run triage
+        // --------------------------------------------------
+
+        const triageResponse = await fetch(
+            `${API_BASE}/triage/${complaint.complaint_id}`,
+            {
+                method: "POST"
+            }
+        );
+
+        if (!triageResponse.ok) {
+            throw new Error(
+                `Triage failed (${triageResponse.status})`
+            );
+        }
+
+        const decision = await triageResponse.json();
+
+
+        // --------------------------------------------------
+        // 3. Generate incident brief
+        // --------------------------------------------------
+
+        const briefResponse = await fetch(
+            `${API_BASE}/triage/${complaint.complaint_id}/brief`,
+            {
+                method: "POST"
+            }
+        );
+
+        if (!briefResponse.ok) {
+            throw new Error(
+                `Incident brief failed (${briefResponse.status})`
+            );
+        }
+
+        const brief = await briefResponse.json();
+
+
+        // --------------------------------------------------
+        // 4. Render result
+        // --------------------------------------------------
+
+        document.getElementById("resultCategory").textContent =
+            decision.category;
+
+        document.getElementById("resultDepartment").textContent =
+            decision.department;
+
+        document.getElementById("resultSeverity").textContent =
+            decision.severity.toUpperCase();
+        
+        document.getElementById("resultConfidence").textContent =
+            `Confidence: ${Math.round(decision.confidence * 100)}%`;
+
+        document.getElementById("resultSla").textContent =
+            `${brief.recommended_sla_days} days`;
+
+        document.getElementById("resultLocation").textContent =
+            brief.location_summary || location || "Not specified";
+
+        const facts = document.getElementById("keyFacts");
+        facts.innerHTML = "";
+
+        (brief.key_facts || []).forEach(fact => {
+
+            const li = document.createElement("li");
+
+            li.textContent = fact;
+
+            facts.appendChild(li);
+
+        });
+
+
+        document.getElementById("recommendedAction").textContent =
+            brief.recommended_action || decision.suggested_action;
+
+
+        results.style.display = "block";
+
+        results.scrollIntoView({
+            behavior: "smooth"
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        errorBox.textContent =
+            error.message ||
+            "Something went wrong while processing the complaint.";
+
+        errorBox.style.display = "block";
+
+    } finally {
+
+        button.disabled = false;
+        loading.style.display = "none";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
