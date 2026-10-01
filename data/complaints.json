@@ -1,0 +1,26 @@
+[
+  {
+    "_comment": "Sample complaints for manual testing — not real citizen data.",
+    "complaint_id": "sample-001",
+    "text": "Jalan di depan kantor saya berlubang besar dan sudah menyebabkan beberapa kecelakaan. Mohon segera diperbaiki. Lokasi: Jl. Merdeka No. 10, Kota Bandung.",
+    "location": "Jl. Merdeka No. 10, Kota Bandung",
+    "category": "road_infrastructure",
+    "evidence_present": false
+  },
+  {
+    "_comment": "Sample with PII for testing sanitizer.",
+    "complaint_id": "sample-002",
+    "text": "Nama saya Budi, NIK 3273012505900003, HP 081234567890, email budi@example.com. Sampah di depan rumah saya di Jl. Kebon Jeruk tidak diangkut sudah 2 minggu.",
+    "location": "Jl. Kebon Jeruk, Jakarta Barat",
+    "category": "waste_management",
+    "evidence_present": true
+  },
+  {
+    "_comment": "Sample with unknown category to test routing fallback.",
+    "complaint_id": "sample-003",
+    "text": "Ada bangunan liar yang dibangun di atas saluran irigasi desa kami. Tidak tahu harus melapor ke mana.",
+    "location": "Desa Sukamaju, Kabupaten Garut",
+    "category": null,
+    "evidence_present": false
+  }
+]

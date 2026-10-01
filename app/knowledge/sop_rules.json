@@ -1,0 +1,49 @@
+{
+  "_comment": "PROTOTYPE MOCK SOP GUIDANCE — not official government SOPs.",
+  "sops": [
+    {
+      "rule_id": "SOP-ROAD-001",
+      "category": "road_infrastructure",
+      "title": "Road Damage Complaint Handling (Mock)",
+      "steps": [
+        "Verify complaint location using submitted address or coordinates.",
+        "Assign field inspector — target within 48 hours of receipt.",
+        "Inspector documents damage with photos and condition report.",
+        "Engineer classifies severity (minor / moderate / severe / critical).",
+        "Work order raised in maintenance system.",
+        "Citizen notified of scheduled repair date.",
+        "Post-repair verification by inspector.",
+        "Complaint closed with photo evidence."
+      ],
+      "escalation_trigger": "No field inspection within 72 hours — escalate to department head."
+    },
+    {
+      "rule_id": "SOP-WASTE-001",
+      "category": "waste_management",
+      "title": "Waste Collection Complaint Handling (Mock)",
+      "steps": [
+        "Confirm complaint address is in service zone.",
+        "Check scheduled collection calendar for the address.",
+        "If missed collection: dispatch supplementary truck within 24 hours.",
+        "If illegal dumping: coordinate with enforcement unit.",
+        "Citizen notified of resolution timeline.",
+        "Complaint closed after confirmation of collection."
+      ],
+      "escalation_trigger": "Health hazard confirmed — escalate immediately to DLH emergency team."
+    },
+    {
+      "rule_id": "SOP-TRAFFIC-001",
+      "category": "traffic_management",
+      "title": "Traffic Management Complaint Handling (Mock)",
+      "steps": [
+        "Identify complaint type: signal failure / congestion / illegal parking / signage.",
+        "For signal failure: dispatch technician within 2 hours.",
+        "For congestion: review CCTV and coordinate with field officers.",
+        "For illegal parking: coordinate with Satpol PP if needed.",
+        "Document action taken.",
+        "Citizen notified of outcome."
+      ],
+      "escalation_trigger": "Signal failure at major intersection — treat as critical."
+    }
+  ]
+}

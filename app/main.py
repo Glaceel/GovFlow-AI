@@ -1,0 +1,192 @@
+"""
+GovFlow AI — FastAPI application entry point.
+
+Endpoints:
+  POST /complaints                      Submit a new complaint.
+  GET  /complaints/{id}                 Retrieve a complaint by ID.
+  POST /triage/{complaint_id}           Run triage on a complaint.
+  POST /triage/{complaint_id}/brief     Generate an incident brief.
+"""
+import uuid
+from datetime import datetime, timezone
+
+from fastapi import FastAPI, HTTPException
+
+from app.config import settings
+from app.models.complaint import ComplaintInput, ComplaintRecord, ComplaintStatus
+from app.models.decision import DecisionOutput
+from app.models.incident_brief import IncidentBrief
+from app.services.audit import AuditService
+from app.services.brief import generate_brief
+from app.services.parser import parse_complaint
+from app.services.routing import RoutingService
+from app.services.sanitizer import sanitize
+from app.services.severity import assess_severity
+from app.services.sla import SLAService
+
+app = FastAPI(title=settings.APP_TITLE, version=settings.APP_VERSION)
+
+# ---------------------------------------------------------------------------
+# In-memory store — replaced by a real DB in a future iteration.
+# ---------------------------------------------------------------------------
+_complaints: dict[str, ComplaintRecord] = {}
+_decisions: dict[str, DecisionOutput] = {}
+_audit = AuditService()
+_router = RoutingService()
+_sla = SLAService()
+
+
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
+@app.post("/complaints", response_model=ComplaintRecord, status_code=201)
+def submit_complaint(payload: ComplaintInput) -> ComplaintRecord:
+    """
+    Accept a raw citizen complaint, sanitize PII, and store it.
+    Returns the stored record including the sanitized text and assigned ID.
+    """
+    complaint_id = str(uuid.uuid4())
+    sanitized = sanitize(payload.text)
+
+    record = ComplaintRecord(
+        complaint_id=complaint_id,
+        text=payload.text,
+        sanitized_text=sanitized,
+        location=payload.location,
+        category=payload.category,
+        evidence_present=payload.evidence_present,
+        status=ComplaintStatus.PENDING,
+        submitted_at=datetime.now(timezone.utc),
+    )
+    _complaints[complaint_id] = record
+    return record
+
+
+@app.get("/complaints/{complaint_id}", response_model=ComplaintRecord)
+def get_complaint(complaint_id: str) -> ComplaintRecord:
+    """Retrieve a complaint record by its ID."""
+    record = _complaints.get(complaint_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+    return record
+
+
+@app.post("/triage/{complaint_id}", response_model=DecisionOutput)
+def triage_complaint(complaint_id: str) -> DecisionOutput:
+    """
+    Run triage on a complaint and return a recommendation.
+
+    Pipeline:
+      1. PII-sanitized text is sent to the Langflow Parser flow (if configured)
+         to extract the complaint category.  Falls back to keyword matching.
+      2. Category is passed to the deterministic RoutingService → department & SLA rule.
+      3. PII-sanitized text + category + department are sent to the Langflow
+         Severity flow (if configured) for severity assessment.
+         Falls back to keyword heuristic.
+      4. SLA is resolved deterministically from sla_rules.json.
+      5. Decision is built, recorded in the audit log, and returned.
+
+    Department and SLA are ALWAYS determined deterministically.
+    The result ALWAYS requires human approval before any action is taken.
+    """
+    record = _complaints.get(complaint_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    # --- Step 1: Parse (AI or keyword fallback) ---
+    # Use category from the submitted record if present; otherwise parse.
+    if record.category and record.category != "unknown":
+        category = record.category
+        parsed_by = "submitted-by-citizen"
+    else:
+        parsed = parse_complaint(record.sanitized_text)
+        category = parsed["category"]
+        parsed_by = parsed.get("parsed_by", "keyword-stub")
+
+    # --- Step 2: Routing (always deterministic) ---
+    routing_result = _router.route(category)
+
+    # --- Step 3: Severity (AI or keyword fallback) ---
+    severity_result = assess_severity(
+        record.sanitized_text,
+        category=category,
+        department=routing_result["department"],
+    )
+
+    # --- Step 4: SLA (always deterministic) ---
+    sla_days = _sla.get_sla_days(category, severity_result["severity"])
+
+    # --- Step 5: Build decision ---
+    decision = DecisionOutput(
+        complaint_id=complaint_id,
+        category=category,
+        department=routing_result["department"],
+        routing_confidence=routing_result["confidence"],
+        severity=severity_result["severity"],
+        severity_reason=severity_result["reason"],
+        duplicate_likelihood=0.0,
+        suggested_action=routing_result["suggested_action"],
+        confidence=routing_result["confidence"],
+        rule_id=routing_result["rule_id"],
+        human_approval_required=True,  # always — non-negotiable
+        decided_at=datetime.now(timezone.utc),
+    )
+
+    # --- Step 6: Audit ---
+    _audit.record(
+        complaint_id=complaint_id,
+        sanitized_input=record.sanitized_text,
+        recommendation={
+            **decision.model_dump(),
+            "parsed_by": parsed_by,
+            "sla_days": sla_days,
+        },
+        human_decision=None,
+    )
+
+    # --- Update complaint status and cache decision ---
+    record.status = ComplaintStatus.TRIAGED
+    record.category = category
+    _complaints[complaint_id] = record
+    _decisions[complaint_id] = decision
+
+    return decision
+
+
+@app.post("/triage/{complaint_id}/brief", response_model=IncidentBrief)
+def generate_complaint_brief(complaint_id: str) -> IncidentBrief:
+    """
+    Generate an AI incident brief for the human reviewer.
+
+    Requires the complaint to have been triaged first (POST /triage/{id}).
+    The brief is generated by the Langflow Incident Brief flow (if configured)
+    or falls back to a deterministic stub.
+
+    NOTE: The brief is advisory only.  Department, SLA, and the
+    human_approval_required flag are sourced from the triage decision —
+    never from the LLM.
+    """
+    record = _complaints.get(complaint_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    decision = _decisions.get(complaint_id)
+    if decision is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Complaint has not been triaged yet. Call POST /triage/{complaint_id} first.",
+        )
+
+    sla_days = _sla.get_sla_days(decision.category, decision.severity)
+
+    brief = generate_brief(
+        complaint_id=complaint_id,
+        sanitized_text=record.sanitized_text,
+        category=decision.category,
+        department=decision.department,
+        severity=decision.severity,
+        severity_reason=decision.severity_reason,
+        sla_days=sla_days,
+    )
+    return brief

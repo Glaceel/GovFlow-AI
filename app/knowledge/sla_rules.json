@@ -1,0 +1,60 @@
+{
+  "_comment": "PROTOTYPE MOCK SLA RULES — not official government regulations.",
+  "default_sla_days": 14,
+  "rules": [
+    {
+      "category": "road_infrastructure",
+      "severity": "critical",
+      "sla_days": 1,
+      "note": "Immediate safety hazard — same-day response target."
+    },
+    {
+      "category": "road_infrastructure",
+      "severity": "high",
+      "sla_days": 3,
+      "note": "Significant road damage."
+    },
+    {
+      "category": "road_infrastructure",
+      "severity": "medium",
+      "sla_days": 7,
+      "note": "Standard road maintenance."
+    },
+    {
+      "category": "road_infrastructure",
+      "severity": "low",
+      "sla_days": 14,
+      "note": "Minor road issue."
+    },
+    {
+      "category": "waste_management",
+      "severity": "high",
+      "sla_days": 2,
+      "note": "Health hazard — urgent collection required."
+    },
+    {
+      "category": "waste_management",
+      "severity": "medium",
+      "sla_days": 5,
+      "note": "Missed collection or illegal dumping."
+    },
+    {
+      "category": "waste_management",
+      "severity": "low",
+      "sla_days": 7,
+      "note": "Routine waste complaint."
+    },
+    {
+      "category": "traffic_management",
+      "severity": "high",
+      "sla_days": 1,
+      "note": "Traffic signal failure or safety incident."
+    },
+    {
+      "category": "traffic_management",
+      "severity": "medium",
+      "sla_days": 5,
+      "note": "Congestion or signage issue."
+    }
+  ]
+}

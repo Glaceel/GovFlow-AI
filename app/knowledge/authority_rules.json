@@ -1,0 +1,51 @@
+[
+  {
+    "_comment": "PROTOTYPE MOCK RULES — not official government regulations.",
+    "rule_id": "AUTH-001",
+    "category": "road_infrastructure",
+    "department": "Dinas PUPR",
+    "department_full": "Dinas Pekerjaan Umum dan Penataan Ruang",
+    "confidence": 0.95,
+    "suggested_action": "Log complaint and forward to Dinas PUPR for field inspection within SLA."
+  },
+  {
+    "rule_id": "AUTH-002",
+    "category": "traffic_management",
+    "department": "Dishub",
+    "department_full": "Dinas Perhubungan",
+    "confidence": 0.92,
+    "suggested_action": "Log complaint and forward to Dishub traffic engineering unit."
+  },
+  {
+    "rule_id": "AUTH-003",
+    "category": "waste_management",
+    "department": "DLH",
+    "department_full": "Dinas Lingkungan Hidup",
+    "confidence": 0.90,
+    "suggested_action": "Log complaint and forward to DLH for waste collection scheduling."
+  },
+  {
+    "rule_id": "AUTH-004",
+    "category": "flood_drainage",
+    "department": "Dinas PUPR",
+    "department_full": "Dinas Pekerjaan Umum dan Penataan Ruang",
+    "confidence": 0.88,
+    "suggested_action": "Log complaint and forward to PUPR drainage sub-unit for inspection."
+  },
+  {
+    "rule_id": "AUTH-005",
+    "category": "water_supply",
+    "department": "PDAM",
+    "department_full": "Perusahaan Daerah Air Minum",
+    "confidence": 0.90,
+    "suggested_action": "Log complaint and forward to PDAM customer service unit."
+  },
+  {
+    "rule_id": "AUTH-006",
+    "category": "electricity",
+    "department": "PLN",
+    "department_full": "Perusahaan Listrik Negara",
+    "confidence": 0.85,
+    "suggested_action": "Log complaint and forward to PLN local unit — note: PLN is a national SOE, not a local dinas."
+  }
+]
